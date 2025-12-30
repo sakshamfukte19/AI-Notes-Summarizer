@@ -53,7 +53,7 @@ public class HomeActivity extends AppCompatActivity {
                 loadFragment(profileFragment);
                 return true;
             }
-            else if (id == R.id.nav_settings) {
+            else if (id == R.id.nav_ai_chat) {
                 // -----------    Paste the name of the settings fragment object here  ----------------
                 loadFragment(profileFragment);
                 return true;
