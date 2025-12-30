@@ -20,4 +20,5 @@
         android:id="@+id/nav_profile"
         android:icon="@drawable/avatar_1"
         android:title="Profile"/>
+
 </menu>

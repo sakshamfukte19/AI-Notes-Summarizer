@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 
 import com.example.ainotessummarizer.R;
 
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link ProfileFragment#newInstance} factory method to

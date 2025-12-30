@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 
 import com.example.ainotessummarizer.R;
 
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link InformationFragment#newInstance} factory method to

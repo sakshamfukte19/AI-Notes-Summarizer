@@ -61,6 +61,7 @@ public class HomeActivity extends AppCompatActivity {
 
             return false;
         });
+
     }
 
     private void loadFragment(Fragment fragment) {
