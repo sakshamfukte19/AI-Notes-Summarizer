@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "com.example.ainotessummarizer"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.ainotessummarizer"
         minSdk = 33
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -40,4 +40,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("androidx.gridlayout:gridlayout:1.0.0")
 }
