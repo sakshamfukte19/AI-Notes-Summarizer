@@ -1,14 +1,13 @@
 package com.example.ainotessummarizer;
-
 public class ChatMessage {
     String message;
-    boolean isUser; // True = User, False = AI
+    String sentBy; // "user" ya "bot"
 
-    public ChatMessage(String message, boolean isUser) {
+    public ChatMessage(String message, String sentBy) {
         this.message = message;
-        this.isUser = isUser;
+        this.sentBy = sentBy;
     }
 
     public String getMessage() { return message; }
-    public boolean isUser() { return isUser; }
+    public String getSentBy() { return sentBy; }
 }

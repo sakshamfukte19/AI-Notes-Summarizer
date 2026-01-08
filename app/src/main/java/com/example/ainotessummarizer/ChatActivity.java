@@ -2,29 +2,37 @@ package com.example.ainotessummarizer;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.widget.EditText;   // ✅ ADDED
-import android.widget.ImageView;  // ✅ ADDED
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView; // ✅ ADDED
-
-import java.util.ArrayList;
-import java.util.List;        // ✅ ADDED
-
-import androidx.core.view.GravityCompat;
-import android.view.View;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import android.view.LayoutInflater;
-import android.widget.LinearLayout;
-import android.widget.Toast; // Testing ke liye
 
-import java.lang.reflect.Field;
-import androidx.customview.widget.ViewDragHelper;
-import android.util.DisplayMetrics;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -33,6 +41,12 @@ public class ChatActivity extends AppCompatActivity {
     ImageView btnSend, btnMic, btnOptionsPlus;
     ChatAdapter adapter;
     List<ChatMessage> chatList;
+    DrawerLayout drawerLayout;
+
+    // --- GEMINI API SETUP ---
+    public static final String API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // <--- APNI KEY YAHAN DALEIN
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    OkHttpClient client = new OkHttpClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,12 +58,13 @@ public class ChatActivity extends AppCompatActivity {
         etMessage = findViewById(R.id.etMessage);
         btnSend = findViewById(R.id.btnSend);
         btnMic = findViewById(R.id.btnMic);
-        btnOptionsPlus = findViewById(R.id.btnOptionsPlus); // Initialized Attach button too
-        DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
-
+        btnOptionsPlus = findViewById(R.id.btnOptionsPlus);
+        drawerLayout = findViewById(R.id.drawerLayout);
+        ImageView btnMenu = findViewById(R.id.btnMenu);
 
         // Setup Recycler
         chatList = new ArrayList<>();
+        // Note: Ensure your Adapter constructor matches. Using (List, Context) based on your code.
         adapter = new ChatAdapter(chatList, this);
         LinearLayoutManager manager = new LinearLayoutManager(this);
         manager.setStackFromEnd(true);
@@ -60,106 +75,132 @@ public class ChatActivity extends AppCompatActivity {
         btnSend.setOnClickListener(v -> {
             String userText = etMessage.getText().toString().trim();
             if (!userText.isEmpty()) {
-                // 1. User ka message add karo
+                // 1. User Message Add
                 addMessage(userText, true);
                 etMessage.setText("");
 
-                // 2. AI ko API request bhejo (Abhi Dummy hai)
-                getAiResponse(userText);
+                // 2. Call Real API
+                callGeminiAPI(userText);
             }
         });
 
-        // MIC BUTTON LOGIC (Speech to Text)
-        btnMic.setOnClickListener(v -> {
-            Toast.makeText(this, "Listening...", Toast.LENGTH_SHORT).show();
+        // MIC BUTTON
+        btnMic.setOnClickListener(v -> Toast.makeText(this, "Listening...", Toast.LENGTH_SHORT).show());
+
+        // MENU BUTTON (Drawer Open)
+        btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+
+        // PLUS BUTTON (Bottom Sheet)
+        btnOptionsPlus.setOnClickListener(v -> showBottomSheetDialog());
+    }
+
+    // --- HELPER METHODS ---
+
+    private void addMessage(String message, boolean isUser) {
+        // ERROR FIX: Convert boolean to String for ChatMessage class
+        String sentBy = isUser ? "user" : "bot";
+
+        chatList.add(new ChatMessage(message, sentBy));
+
+        // UI Updates on Main Thread
+        runOnUiThread(() -> {
+            adapter.notifyItemInserted(chatList.size() - 1);
+            recyclerView.smoothScrollToPosition(chatList.size() - 1);
         });
+    }
 
-        // References
-        ImageView btnMenu = findViewById(R.id.btnMenu);
+    private void callGeminiAPI(String question) {
+        // Typing indicator
+        addMessage("Typing...", false);
 
-       // Click listener to open drawer
-        btnMenu.setOnClickListener(new View.OnClickListener() {
+        JSONObject jsonBody = new JSONObject();
+        try {
+            JSONObject content = new JSONObject();
+            JSONObject part = new JSONObject();
+            part.put("text", question);
+            JSONArray parts = new JSONArray();
+            parts.put(part);
+            content.put("parts", parts);
+            JSONArray contents = new JSONArray();
+            contents.put(content);
+            jsonBody.put("contents", contents);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
+        Request request = new Request.Builder()
+                .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY)
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onClick(View v) {
-                drawerLayout.openDrawer(GravityCompat.START);
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                removeTypingIndicator();
+                addMessage("Error: " + e.getMessage(), false);
             }
-        });
 
-
-
-        btnOptionsPlus.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                // Jab plus dabega, ye function call hoga
-                showBottomSheetDialog();
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                removeTypingIndicator();
+                if (response.isSuccessful()) {
+                    try {
+                        String responseBody = response.body().string();
+                        JSONObject jsonResponse = new JSONObject(responseBody);
+                        JSONArray candidates = jsonResponse.getJSONArray("candidates");
+                        String result = candidates.getJSONObject(0)
+                                .getJSONObject("content")
+                                .getJSONArray("parts")
+                                .getJSONObject(0)
+                                .getString("text");
+
+                        addMessage(result.trim(), false); // AI ka javaab add karein
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        addMessage("Parsing Error", false);
+                    }
+                } else {
+                    addMessage("API Failed. Check Key.", false);
+                }
             }
         });
+    }
 
-
+    private void removeTypingIndicator() {
+        runOnUiThread(() -> {
+            if (!chatList.isEmpty() && chatList.get(chatList.size() - 1).getMessage().equals("Typing...")) {
+                chatList.remove(chatList.size() - 1);
+                adapter.notifyItemRemoved(chatList.size());
+            }
+        });
     }
 
     private void showBottomSheetDialog() {
-        // 1. BottomSheetDialog create karein
         final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.layout_bottom_sheet, null);
 
-        // Container ki jagah 'null' pass karein
-        View bottomSheetView = LayoutInflater.from(this)
-                .inflate(R.layout.layout_bottom_sheet, null);
-
-        // 3. Sheet ke andar ke buttons dhundhein
         LinearLayout btnCamera = bottomSheetView.findViewById(R.id.sheetBtnCamera);
         LinearLayout btnGallery = bottomSheetView.findViewById(R.id.sheetBtnGallery);
         LinearLayout btnFile = bottomSheetView.findViewById(R.id.sheetBtnFile);
 
-        // 4. In buttons par click listener lagayein (Abhi ke liye sirf Toast)
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(ChatActivity.this, "Camera clicked", Toast.LENGTH_SHORT).show();
-                bottomSheetDialog.dismiss(); // Click ke baad sheet band karein
-            }
+        btnCamera.setOnClickListener(v -> {
+            Toast.makeText(ChatActivity.this, "Camera", Toast.LENGTH_SHORT).show();
+            bottomSheetDialog.dismiss();
+        });
+        btnGallery.setOnClickListener(v -> {
+            Toast.makeText(ChatActivity.this, "Gallery", Toast.LENGTH_SHORT).show();
+            bottomSheetDialog.dismiss();
+        });
+        btnFile.setOnClickListener(v -> {
+            Toast.makeText(ChatActivity.this, "File", Toast.LENGTH_SHORT).show();
+            bottomSheetDialog.dismiss();
         });
 
-        btnGallery.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(ChatActivity.this, "Gallery clicked", Toast.LENGTH_SHORT).show();
-                bottomSheetDialog.dismiss();
-            }
-        });
-
-        btnFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(ChatActivity.this, "File clicked", Toast.LENGTH_SHORT).show();
-                bottomSheetDialog.dismiss();
-            }
-        });
-
-        // 5. View set karein aur dialog show karein
         bottomSheetDialog.setContentView(bottomSheetView);
-
-        // Zaroori: Sheet ka background transparent karein taaki rounded corners dikhein
         try {
             bottomSheetDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        } catch (Exception e) { e.printStackTrace(); }
         bottomSheetDialog.show();
     }
-
-    private void addMessage(String message, boolean isUser) {
-        chatList.add(new ChatMessage(message, isUser));
-        adapter.notifyItemInserted(chatList.size() - 1);
-        recyclerView.smoothScrollToPosition(chatList.size() - 1);
-    }
-
-    private void getAiResponse(String query) {
-        new Handler().postDelayed(() -> {
-            String dummyResponse = "**AI Notes Summarizer:**\n\n Maine aapka message padha: _\"" + query + "\"_. \n\n* Point 1\n* Point 2\n* Point 3";
-            addMessage(dummyResponse, false);
-        }, 1000);
-    }
-
 }
