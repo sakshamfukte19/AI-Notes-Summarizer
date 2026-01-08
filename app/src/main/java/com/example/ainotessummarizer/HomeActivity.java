@@ -6,6 +6,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.example.ainotessummarizer.Fragments.BookmarkFragment;
+import com.example.ainotessummarizer.Fragments.HistoryFragment;
 import com.example.ainotessummarizer.Fragments.HomeFragment;
 import com.example.ainotessummarizer.Fragments.InformationFragment;
 import com.example.ainotessummarizer.Fragments.ProfileFragment;
@@ -39,10 +41,10 @@ public class HomeActivity extends AppCompatActivity {
                 loadFragment(new InformationFragment());
             }
             else if (tabId == 3) {
-                loadFragment(new ProfileFragment()); // History Fragment
+                loadFragment(new HistoryFragment()); // History Fragment
             }
             else if (tabId == 4) {
-                loadFragment(new ProfileFragment());
+                loadFragment(new BookmarkFragment());
             }
         });
 

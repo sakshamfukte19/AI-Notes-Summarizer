@@ -143,7 +143,7 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:id="@+id/img_profile"
+                    android:id="@+id/imp_bookmark"
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     app:srcCompat="@drawable/ic_bookmark"
