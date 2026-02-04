@@ -47,6 +47,7 @@ public class SignupActivity extends AppCompatActivity {
 
         if(email.isEmpty()){
             emailEditText.setError("Email field can't be empty");
+            return;
         }
 
 
