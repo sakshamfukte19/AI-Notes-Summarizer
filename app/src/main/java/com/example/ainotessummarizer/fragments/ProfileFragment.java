@@ -1,4 +1,4 @@
-package com.example.ainotessummarizer.Fragments;
+package com.example.ainotessummarizer.fragments;
 
 import android.os.Bundle;
 

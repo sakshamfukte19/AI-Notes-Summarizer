@@ -44,4 +44,6 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("androidx.gridlayout:gridlayout:1.0.0")
+    implementation("com.airbnb.android:lottie:6.4.0")
+
 }
