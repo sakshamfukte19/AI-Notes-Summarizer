@@ -49,6 +49,7 @@ public class SignupActivity extends AppCompatActivity {
             emailEditText.setError("Email field can't be empty");
         }
 
+
         if (password.isEmpty()) {
             ((TextInputLayout)findViewById(R.id.passwordInputLayout))
                     .setError("password cannot be empty");
