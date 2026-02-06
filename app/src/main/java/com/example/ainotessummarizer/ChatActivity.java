@@ -44,7 +44,7 @@ public class ChatActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
 
     // --- GEMINI API SETUP ---
-    public static final String API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // <--- APNI KEY YAHAN DALEIN
+    public static final String API_KEY = "AIzaSyDz87M6wyePxymnDkEAp40OsjMg93pGIWw";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     OkHttpClient client = new OkHttpClient();
 
