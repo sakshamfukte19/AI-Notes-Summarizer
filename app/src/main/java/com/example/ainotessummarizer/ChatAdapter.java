@@ -26,7 +26,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public int getItemViewType(int position) {
         // 0 for User, 1 for AI
-        return messageList.get(position).isUser() ? 0 : 1;
+        return "user".equals(messageList.get(position).getSentBy()) ? 0 : 1;
     }
 
     @NonNull
