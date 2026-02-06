@@ -1,5 +1,7 @@
 package com.example.ainotessummarizer;
 public class ChatMessage {
+    private static final String SENT_BY_USER = "user";
+
     String message;
     String sentBy; // "user" ya "bot"
 
@@ -10,4 +12,8 @@ public class ChatMessage {
 
     public String getMessage() { return message; }
     public String getSentBy() { return sentBy; }
+
+    public boolean isUser() {
+        return SENT_BY_USER.equals(sentBy);
+    }
 }
