@@ -1,6 +1,7 @@
 package com.example.ainotessummarizer;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -43,7 +44,7 @@ public class ChatActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
 
     // --- GEMINI API SETUP ---
-    public static final String API_KEY = "AIzaSyDz87M6wyePxymnDkEAp40OsjMg93pGIWw";
+    public static final String API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // <--- APNI KEY YAHAN DALEIN
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     OkHttpClient client = new OkHttpClient();
 
@@ -143,76 +144,27 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 removeTypingIndicator();
+                if (response.isSuccessful()) {
+                    try {
+                        String responseBody = response.body().string();
+                        JSONObject jsonResponse = new JSONObject(responseBody);
+                        JSONArray candidates = jsonResponse.getJSONArray("candidates");
+                        String result = candidates.getJSONObject(0)
+                                .getJSONObject("content")
+                                .getJSONArray("parts")
+                                .getJSONObject(0)
+                                .getString("text");
 
-                String responseBody = response.body() != null ? response.body().string() : "";
-
-                if (!response.isSuccessful()) {
-                    addMessage(buildApiErrorMessage(response.code(), responseBody), false);
-                    return;
-                }
-
-                try {
-                    String result = extractAiText(responseBody);
-                    if (result == null || result.trim().isEmpty()) {
-                        addMessage("No response text returned by Gemini.", false);
-                    } else {
-                        addMessage(result.trim(), false);
+                        addMessage(result.trim(), false); // AI ka javaab add karein
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        addMessage("Parsing Error", false);
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    addMessage("Response parse failed. Please try again.", false);
+                } else {
+                    addMessage("API Failed. Check Key.", false);
                 }
             }
         });
-    }
-
-    private String extractAiText(String responseBody) throws JSONException {
-        JSONObject jsonResponse = new JSONObject(responseBody);
-        JSONArray candidates = jsonResponse.optJSONArray("candidates");
-        if (candidates == null || candidates.length() == 0) {
-            return null;
-        }
-
-        JSONObject firstCandidate = candidates.optJSONObject(0);
-        if (firstCandidate == null) {
-            return null;
-        }
-
-        JSONObject content = firstCandidate.optJSONObject("content");
-        if (content == null) {
-            return null;
-        }
-
-        JSONArray parts = content.optJSONArray("parts");
-        if (parts == null || parts.length() == 0) {
-            return null;
-        }
-
-        JSONObject firstPart = parts.optJSONObject(0);
-        return firstPart != null ? firstPart.optString("text", null) : null;
-    }
-
-    private String buildApiErrorMessage(int statusCode, String responseBody) {
-        String apiMessage = "";
-        try {
-            JSONObject errorJson = new JSONObject(responseBody).optJSONObject("error");
-            if (errorJson != null) {
-                apiMessage = errorJson.optString("message", "");
-            }
-        } catch (JSONException ignored) {
-        }
-
-        if (statusCode == 429) {
-            return "Gemini rate limit hit (429). Please wait and try again.";
-        }
-        if (statusCode == 404) {
-            return "Gemini endpoint/model not found (404). Enable Generative Language API and verify model name.";
-        }
-
-        if (!apiMessage.isEmpty()) {
-            return "Gemini API error (" + statusCode + "): " + apiMessage;
-        }
-        return "Gemini API error (" + statusCode + ").";
     }
 
     private void removeTypingIndicator() {
