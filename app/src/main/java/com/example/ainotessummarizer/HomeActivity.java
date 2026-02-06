@@ -1,67 +1,60 @@
 package com.example.ainotessummarizer;
 
+import android.content.Intent;
 import android.os.Bundle;
-
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.example.ainotessummarizer.Fragments.BookmarkFragment;
+import com.example.ainotessummarizer.Fragments.HistoryFragment;
 import com.example.ainotessummarizer.Fragments.HomeFragment;
 import com.example.ainotessummarizer.Fragments.InformationFragment;
 import com.example.ainotessummarizer.Fragments.ProfileFragment;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private BottomNavigationView bottomNavigationView;
-
-    private final HomeFragment homeFragment = new HomeFragment();
-    private final ProfileFragment profileFragment = new ProfileFragment();
-    private final InformationFragment informationFragment = new InformationFragment();
-
-    //  ----------------    create the settings and history fragment object here  ---------------------
+    // Sirf Helper Class ka object banayenge
+    private BottomNavHelper navHelper;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // IMPORTANT
         setContentView(R.layout.activity_home);
 
-        bottomNavigationView = findViewById(R.id.bottomNavigation);
+        fab = findViewById(R.id.fab);
 
-        // Load default fragment
-        loadFragment(homeFragment);
+        // Default Fragment Load
+        loadFragment(new HomeFragment());
 
-        bottomNavigationView.setOnItemSelectedListener(item -> {
+        // --- MAGIC LINE ---
+        // Saara navigation logic ab iss ek line me hai
+        navHelper = new BottomNavHelper(this, tabId -> {
 
-            int id = item.getItemId();
-
-            if (id == R.id.nav_home) {
-                loadFragment(homeFragment);
-                return true;
-
-            } else if (id == R.id.nav_info) {
-                loadFragment(informationFragment);
-                return true;
-
-            } else if (id == R.id.nav_profile) {
-                loadFragment(profileFragment);
-                return true;
+            // Ye code tab chalega jab user click karega
+            if (tabId == 1) {
+                loadFragment(new HomeFragment());
             }
-            else if (id == R.id.nav_history) {
-                // -----------    Paste the name of the history fragment object here  -----------------
-                loadFragment(profileFragment);
-                return true;
+            else if (tabId == 2) {
+                loadFragment(new InformationFragment());
             }
-            else if (id == R.id.nav_ai_chat) {
-                // -----------    Paste the name of the settings fragment object here  ----------------
-                loadFragment(profileFragment);
-                return true;
+            else if (tabId == 3) {
+                loadFragment(new HistoryFragment()); // History Fragment
             }
-
-            return false;
+            else if (tabId == 4) {
+                loadFragment(new BookmarkFragment());
+            }
         });
 
+
+        // FAB click alag se handle kar lo
+        fab.setOnClickListener(v -> {
+            Toast.makeText(this, "AI Chat Opening...", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void loadFragment(Fragment fragment) {
