@@ -1,7 +1,6 @@
 package com.example.ainotessummarizer;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -43,8 +42,10 @@ public class ChatActivity extends AppCompatActivity {
     List<ChatMessage> chatList;
     DrawerLayout drawerLayout;
 
-    // --- GEMINI API SETUP ---
-    public static final String API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // <--- APNI KEY YAHAN DALEIN
+    // --- GROK (X.AI) API SETUP ---
+    public static final String API_KEY = BuildConfig.XAI_API_KEY;
+    public static final String API_URL = "https://api.x.ai/v1/chat/completions";
+    public static final String MODEL_NAME = "grok-4-latest";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     OkHttpClient client = new OkHttpClient();
 
@@ -80,7 +81,7 @@ public class ChatActivity extends AppCompatActivity {
                 etMessage.setText("");
 
                 // 2. Call Real API
-                callGeminiAPI(userText);
+                callGrokAPI(userText);
             }
         });
 
@@ -109,28 +110,45 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    private void callGeminiAPI(String question) {
+    private void callGrokAPI(String question) {
         // Typing indicator
         addMessage("Typing...", false);
 
+        if (API_KEY == null || API_KEY.trim().isEmpty()) {
+            removeTypingIndicator();
+            addMessage("Grok API key is missing. Add XAI_API_KEY in local.properties or env.", false);
+            return;
+        }
+
         JSONObject jsonBody = new JSONObject();
         try {
-            JSONObject content = new JSONObject();
-            JSONObject part = new JSONObject();
-            part.put("text", question);
-            JSONArray parts = new JSONArray();
-            parts.put(part);
-            content.put("parts", parts);
-            JSONArray contents = new JSONArray();
-            contents.put(content);
-            jsonBody.put("contents", contents);
+            JSONArray messages = new JSONArray();
+
+            JSONObject systemMessage = new JSONObject();
+            systemMessage.put("role", "system");
+            systemMessage.put("content", "You are AI Notes Summarizer. Give concise and helpful answers.");
+            messages.put(systemMessage);
+
+            JSONObject userMessage = new JSONObject();
+            userMessage.put("role", "user");
+            userMessage.put("content", question);
+            messages.put(userMessage);
+
+            jsonBody.put("model", MODEL_NAME);
+            jsonBody.put("messages", messages);
+            jsonBody.put("stream", false);
         } catch (JSONException e) {
             e.printStackTrace();
+            removeTypingIndicator();
+            addMessage("Request build failed. Please try again.", false);
+            return;
         }
 
         RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
         Request request = new Request.Builder()
-                .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY)
+                .url(API_URL)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer " + API_KEY)
                 .post(body)
                 .build();
 
@@ -144,27 +162,70 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 removeTypingIndicator();
-                if (response.isSuccessful()) {
-                    try {
-                        String responseBody = response.body().string();
-                        JSONObject jsonResponse = new JSONObject(responseBody);
-                        JSONArray candidates = jsonResponse.getJSONArray("candidates");
-                        String result = candidates.getJSONObject(0)
-                                .getJSONObject("content")
-                                .getJSONArray("parts")
-                                .getJSONObject(0)
-                                .getString("text");
 
-                        addMessage(result.trim(), false); // AI ka javaab add karein
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        addMessage("Parsing Error", false);
+                String responseBody = response.body() != null ? response.body().string() : "";
+
+                if (!response.isSuccessful()) {
+                    addMessage(buildApiErrorMessage(response.code(), responseBody), false);
+                    return;
+                }
+
+                try {
+                    String result = extractAiText(responseBody);
+                    if (result == null || result.trim().isEmpty()) {
+                        addMessage("No response text returned by Grok.", false);
+                    } else {
+                        addMessage(result.trim(), false);
                     }
-                } else {
-                    addMessage("API Failed. Check Key.", false);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    addMessage("Response parse failed. Please try again.", false);
                 }
             }
         });
+    }
+
+    private String extractAiText(String responseBody) throws JSONException {
+        JSONObject jsonResponse = new JSONObject(responseBody);
+        JSONArray choices = jsonResponse.optJSONArray("choices");
+        if (choices == null || choices.length() == 0) {
+            return null;
+        }
+
+        JSONObject firstChoice = choices.optJSONObject(0);
+        if (firstChoice == null) {
+            return null;
+        }
+
+        JSONObject message = firstChoice.optJSONObject("message");
+        if (message == null) {
+            return null;
+        }
+
+        return message.optString("content", null);
+    }
+
+    private String buildApiErrorMessage(int statusCode, String responseBody) {
+        String apiMessage = "";
+        try {
+            JSONObject errorJson = new JSONObject(responseBody).optJSONObject("error");
+            if (errorJson != null) {
+                apiMessage = errorJson.optString("message", "");
+            }
+        } catch (JSONException ignored) {
+        }
+
+        if (statusCode == 429) {
+            return "Grok rate limit hit (429). Please wait and try again.";
+        }
+        if (statusCode == 404) {
+            return "Grok endpoint/model not found (404). Verify API URL, model name, and account access.";
+        }
+
+        if (!apiMessage.isEmpty()) {
+            return "Grok API error (" + statusCode + "): " + apiMessage;
+        }
+        return "Grok API error (" + statusCode + ").";
     }
 
     private void removeTypingIndicator() {
