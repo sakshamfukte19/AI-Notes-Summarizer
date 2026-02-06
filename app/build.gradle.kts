@@ -3,6 +3,12 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
 }
 
+val xaiApiKey: String = ((project.findProperty("XAI_API_KEY") as String?)
+    ?: System.getenv("XAI_API_KEY")
+    ?: "")
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+
 android {
     namespace = "com.example.ainotessummarizer"
     compileSdk = 36
@@ -15,6 +21,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "XAI_API_KEY", "\"$xaiApiKey\"")
     }
 
     buildTypes {
@@ -43,28 +50,16 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
     implementation("androidx.gridlayout:gridlayout:1.0.0")
-    implementation("com.google.android.material:material:1.9.0")
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-    implementation("io.noties.markwon:core:4.6.2")
-
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-analytics")
 
-
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
-
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation("io.noties.markwon:core:4.6.2")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 
 }
-
-
-
-

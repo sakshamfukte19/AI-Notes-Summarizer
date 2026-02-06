@@ -43,7 +43,7 @@ public class ChatActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
 
     // --- GROK (X.AI) API SETUP ---
-    public static final String API_KEY = "xai-C6LQGIMaP1cINXAc3BIZY3xp2XttqUmDn9RMdGxPJ7ViW36uI8qlABoXYHHtX1F7VYD4hbxm4CwI1JU";
+    public static final String API_KEY = BuildConfig.XAI_API_KEY;
     public static final String API_URL = "https://api.x.ai/v1/chat/completions";
     public static final String MODEL_NAME = "grok-4-latest";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
@@ -113,6 +113,12 @@ public class ChatActivity extends AppCompatActivity {
     private void callGrokAPI(String question) {
         // Typing indicator
         addMessage("Typing...", false);
+
+        if (API_KEY == null || API_KEY.trim().isEmpty()) {
+            removeTypingIndicator();
+            addMessage("Grok API key is missing. Add XAI_API_KEY in local.properties or env.", false);
+            return;
+        }
 
         JSONObject jsonBody = new JSONObject();
         try {
