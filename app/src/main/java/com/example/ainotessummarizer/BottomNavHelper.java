@@ -40,7 +40,7 @@ public class BottomNavHelper {
         imgHome = activity.findViewById(R.id.img_home);
         imgInfo = activity.findViewById(R.id.img_info);
         imgHistory = activity.findViewById(R.id.img_history);
-        imgProfile = activity.findViewById(R.id.img_profile);
+        imgProfile = activity.findViewById(R.id.imp_bookmark);
 
         txtHome = activity.findViewById(R.id.txt_home);
         txtInfo = activity.findViewById(R.id.txt_info);

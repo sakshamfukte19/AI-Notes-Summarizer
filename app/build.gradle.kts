@@ -54,17 +54,13 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-analytics")
 
-
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
-
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 
+    implementation("com.google.guava:guava:31.0.1-android")
+    implementation("org.reactivestreams:reactive-streams:1.0.4")
+
 }
-
-
-
-
