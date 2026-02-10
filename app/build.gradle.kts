@@ -12,7 +12,8 @@ val localProperties = Properties().apply {
     }
 }
 
-val geminiApiKey = (localProperties.getProperty("GEMINI_API_KEY") ?: "").replace("\"", "\\\"")
+val geminiApiKey: String =
+    localProperties.getProperty("GEMINI_API_KEY") ?: ""
 
 android {
     namespace = "com.example.ainotessummarizer"
@@ -26,7 +27,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+
+        buildConfigField(
+            "String",
+            "GEMINI_API_KEY",
+            "\"$geminiApiKey\""
+        )
     }
 
     buildTypes {
@@ -38,6 +44,7 @@ android {
             )
         }
     }
+
     buildFeatures {
         buildConfig = true
     }
@@ -54,21 +61,15 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.database)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
-    implementation("androidx.gridlayout:gridlayout:1.0.0")
-    implementation("com.google.android.material:material:1.9.0")
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-    implementation("io.noties.markwon:core:4.6.2")
-
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
+
+    implementation("androidx.gridlayout:gridlayout:1.0.0")
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation("io.noties.markwon:core:4.6.2")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
@@ -79,4 +80,10 @@ dependencies {
     implementation("com.google.guava:guava:31.0.1-android")
     implementation("org.reactivestreams:reactive-streams:1.0.4")
 
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation("io.noties.markwon:core:4.6.2")
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 }
