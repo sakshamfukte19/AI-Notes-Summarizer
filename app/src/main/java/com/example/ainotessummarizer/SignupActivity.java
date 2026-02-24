@@ -2,108 +2,108 @@ package com.example.ainotessummarizer;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.util.Patterns;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
-import java.util.HashMap;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class SignupActivity extends AppCompatActivity {
 
-    EditText name, email, pass;
-    Button signup;
-    TextView loginTv;
-    FirebaseAuth mauth;
-    DatabaseReference dbref;
+    private TextInputEditText emailEditText, passwordEditText, confirmPasswordEditText;
+    private MaterialCheckBox termsCheckbox;
+    private MaterialButton registerButton;
+
+    // ✅ ADDED: DatabaseHelper
+    private DatabaseHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
-        name = findViewById(R.id.SignupName);
-        email = findViewById(R.id.emailSignup);
-        pass = findViewById(R.id.passwordSignup);
-        signup = findViewById(R.id.SignupBtn);
-        loginTv = findViewById(R.id.loginTv);
-        mauth = FirebaseAuth.getInstance();
-        dbref = FirebaseDatabase.getInstance().getReference("Users");
 
+        // Bind UI elements
+        emailEditText = findViewById(R.id.emailEditText);
+        passwordEditText = findViewById(R.id.passwordEditText);
+        confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
+        termsCheckbox = findViewById(R.id.termsCheckbox);
+        registerButton = findViewById(R.id.registerButton);
 
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                storeUser();
-            }
-        });
+        // ✅ ADDED: Initialize database
+        db = new DatabaseHelper(this);
 
-        loginTv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivity(intent);
-            }
-        });
-
-
+        registerButton.setOnClickListener(v -> registerUser());
     }
 
-    private void storeUser() {
-        String uName = name.getText().toString().trim();
-        String uEmail = email.getText().toString().trim();
-        String uPass = pass.getText().toString().trim();
-        if (TextUtils.isEmpty(uName)) {
-            name.setError("Name is required");
-            return;
-        }
-        if (TextUtils.isEmpty(uEmail)) {
-            email.setError("Emails is required");
-            return;
-        }
-        if (TextUtils.isEmpty(uPass)) {
-            pass.setError("Password is required");
+    private void registerUser() {
+        String email = emailEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
+        String confirmPassword = confirmPasswordEditText.getText().toString().trim();
+        boolean isTermsAgreed = termsCheckbox.isChecked();
+        clearErrors();
+
+        if(email.isEmpty()){
+            emailEditText.setError("Email field can't be empty");
             return;
         }
 
-        if(uPass.length() < 6) {
-            pass.setError("There should be password of 7 characters");
+
+        if (password.isEmpty()) {
+            ((TextInputLayout)findViewById(R.id.passwordInputLayout))
+                    .setError("password cannot be empty");
             return;
         }
-        mauth.createUserWithEmailAndPassword(uEmail, uPass).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                FirebaseUser currUser = mauth.getCurrentUser();
-                if (currUser != null) {
-                    String uid = currUser.getUid();
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("Name", uName);
-                    map.put("Email", uEmail);
-                    map.put("Password", uPass);
 
-                    dbref.child(uid).setValue(map).addOnCompleteListener(task1 -> {
-                        if (task1.isSuccessful()) {
-                            name.setText("");
-                            email.setText("");
-                            pass.setText("");
-                            Toast.makeText(SignupActivity.this, "Registered successfully", Toast.LENGTH_LONG).show();
-                            Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Toast.makeText(SignupActivity.this, "Registration Failed", Toast.LENGTH_LONG).show();
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            ((TextInputLayout)findViewById(R.id.emailInputLayout))
+                    .setError("Enter a valid email");
+            return;
+        }
 
-                        }
-                    });
-                }
-            }
-        });
+        if (password.length() < 6) {
+            ((TextInputLayout)findViewById(R.id.passwordInputLayout))
+                    .setError("Password must be at least 6 characters");
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            ((TextInputLayout)findViewById(R.id.confirmPasswordInputLayout))
+                    .setError("Passwords do not match");
+            return;
+        }
+
+        if (!isTermsAgreed) {
+            Toast.makeText(this, "Please agree to Terms & Conditions", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // ✅ ADDED: Check email uniqueness
+        if (db.isEmailExists(email)) {
+            ((TextInputLayout)findViewById(R.id.emailInputLayout))
+                    .setError("Email already registered");
+            return;
+        }
+
+        // ✅ ADDED: Register user in SQLite (with hashing inside DB)
+        boolean success = db.registerUser(email, password);
+
+        if (!success) {
+            Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+
+        startActivity(new Intent(this, LoginActivity.class));
+        finish();
+    }
+
+    private void clearErrors() {
+        ((TextInputLayout)findViewById(R.id.emailInputLayout)).setError(null);
+        ((TextInputLayout)findViewById(R.id.passwordInputLayout)).setError(null);
+        ((TextInputLayout)findViewById(R.id.confirmPasswordInputLayout)).setError(null);
     }
 }

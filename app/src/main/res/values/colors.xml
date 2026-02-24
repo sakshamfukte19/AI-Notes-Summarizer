@@ -9,5 +9,16 @@
     <color name="blue_light">#A4C8E1</color>
     <color name="blue_dark">#1976D2</color>
     <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1565C0</color>
+    <color name="error">#D32F2F</color>
+    <color name="success">#388E3C</color>
+    <color name="yelowlogin">#1f2933</color>
+    <color name="gray">#565555</color>
+    <color name="red">#D32F2F</color>
+    <color name="yelow">#F8C103</color>
+    <color name="green">#388E3C</color>
+    <color name="drawer_divider_color">#BDBDBD</color>
+    <color name="login_normal">#1976D2</color>   <!-- Blue -->
+    <color name="login_locked">#767171</color>   <!-- Dark Red -->
 
 </resources>

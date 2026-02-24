@@ -12,8 +12,8 @@ val localProperties = Properties().apply {
     }
 }
 
-val geminiApiKey: String =
-    localProperties.getProperty("GEMINI_API_KEY") ?: ""
+val groqApiKey: String =
+    localProperties.getProperty("GROQ_API_KEY") ?: ""
 
 android {
     namespace = "com.example.ainotessummarizer"
@@ -30,8 +30,8 @@ android {
 
         buildConfigField(
             "String",
-            "GEMINI_API_KEY",
-            "\"$geminiApiKey\""
+            "GROK_API_KEY",
+            "\"$groqApiKey\""
         )
     }
 
@@ -68,7 +68,6 @@ dependencies {
     implementation(libs.firebase.database)
 
     implementation("androidx.gridlayout:gridlayout:1.0.0")
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
     implementation("io.noties.markwon:core:4.6.2")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -80,10 +79,14 @@ dependencies {
     implementation("com.google.guava:guava:31.0.1-android")
     implementation("org.reactivestreams:reactive-streams:1.0.4")
 
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
     implementation("io.noties.markwon:core:4.6.2")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation("androidx.gridlayout:gridlayout:1.0.0")
+    implementation("com.airbnb.android:lottie:6.4.0")
+
+
 }

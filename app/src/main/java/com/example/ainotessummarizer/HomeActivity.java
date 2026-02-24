@@ -7,10 +7,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.example.ainotessummarizer.Fragments.BookmarkFragment;
-import com.example.ainotessummarizer.Fragments.HistoryFragment;
 import com.example.ainotessummarizer.Fragments.HomeFragment;
+import com.example.ainotessummarizer.Fragments.HistoryFragment;
 import com.example.ainotessummarizer.Fragments.InformationFragment;
-import com.example.ainotessummarizer.Fragments.ProfileFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class HomeActivity extends AppCompatActivity {
@@ -27,6 +26,7 @@ public class HomeActivity extends AppCompatActivity {
         fab = findViewById(R.id.fab);
 
         // Default Fragment Load
+
         loadFragment(new HomeFragment());
 
         // --- MAGIC LINE ---
