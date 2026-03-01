@@ -39,7 +39,12 @@ public class FlashcardSetAdapter extends RecyclerView.Adapter<FlashcardSetAdapte
         holder.tvTitle.setText(model.getSetTitle());
         holder.tvDescription.setText(model.getSetDescription());
 
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(position));
+        holder.itemView.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (adapterPosition != RecyclerView.NO_POSITION) {
+                listener.onItemClick(adapterPosition);
+            }
+        });
     }
 
     @Override
