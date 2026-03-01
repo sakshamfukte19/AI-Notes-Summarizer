@@ -1,0 +1,32 @@
+<resources>
+    <style name="Theme.MyApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#6200EE</item>
+    </style>
+
+    <!-- Modern Material 3 Bottom Navigation Style -->
+    <style name="ModernBottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">@color/nav_bar_bg</item>
+        <item name="itemIconTint">@color/bottom_nav_colors</item>
+        <item name="itemTextColor">@color/bottom_nav_colors</item>
+        <item name="itemActiveIndicatorStyle">@style/BottomNavActiveIndicator</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemRippleColor">@color/nav_active_indicator</item>
+        <item name="elevation">8dp</item>
+        <item name="itemIconSize">24dp</item>
+        <item name="itemPaddingTop">8dp</item>
+        <item name="itemPaddingBottom">8dp</item>
+    </style>
+
+    <!-- Pill-shaped active indicator -->
+    <style name="BottomNavActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/nav_active_indicator</item>
+        <item name="android:width">64dp</item>
+        <item name="android:height">32dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Pill</item>
+    </style>
+
+    <style name="ShapeAppearance.Pill" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>
