@@ -42,6 +42,7 @@ public class HomeActivity extends AppCompatActivity {
     private Fragment activeFragment;
     private BottomNavHelper navHelper;
     private SessionManager sessionManager;
+    private boolean shouldReturnToHomeFromChat = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,9 +56,7 @@ public class HomeActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             setupFragments();
         } else {
-            // Restore active fragment reference after rotation
-            activeFragment = getSupportFragmentManager()
-                    .findFragmentByTag(TAG_HOME);
+            restoreActiveFragment();
         }
 
         setupBottomNav();
@@ -104,6 +103,7 @@ public class HomeActivity extends AppCompatActivity {
                     showFragment(TAG_HISTORY);
                     break;
                 case 4:
+                    shouldReturnToHomeFromChat = true;
                     // AI Chat opens a separate activity with slide animation
                     Intent chatIntent = new Intent(HomeActivity.this, ChatActivity.class);
                     startActivity(chatIntent);
@@ -158,12 +158,39 @@ public class HomeActivity extends AppCompatActivity {
         // Refresh session last-active timestamp on every resume
         sessionManager.updateLastActive();
 
-        // Reset nav to Home when coming back from ChatActivity
-        // so that the AI Chat tab doesn't stay selected
-        Fragment homeFragment = getSupportFragmentManager().findFragmentByTag(TAG_HOME);
-        if (activeFragment != homeFragment) {
-            showFragment(TAG_HOME);
+        // Reset nav to Home only when coming back from ChatActivity
+        // so current tab state remains unchanged for other flows
+        if (shouldReturnToHomeFromChat) {
+            Fragment homeFragment = getSupportFragmentManager().findFragmentByTag(TAG_HOME);
+            if (activeFragment != homeFragment) {
+                showFragment(TAG_HOME);
+            }
+            navHelper.selectTab(1);
+            shouldReturnToHomeFromChat = false;
         }
-        navHelper.selectTab(1);
+    }
+
+    private void restoreActiveFragment() {
+        FragmentManager fm = getSupportFragmentManager();
+
+        Fragment home = fm.findFragmentByTag(TAG_HOME);
+        Fragment flashcard = fm.findFragmentByTag(TAG_FLASHCARD);
+        Fragment history = fm.findFragmentByTag(TAG_HISTORY);
+        Fragment profile = fm.findFragmentByTag(TAG_PROFILE);
+
+        if (flashcard != null && flashcard.isVisible()) {
+            activeFragment = flashcard;
+            return;
+        }
+        if (history != null && history.isVisible()) {
+            activeFragment = history;
+            return;
+        }
+        if (profile != null && profile.isVisible()) {
+            activeFragment = profile;
+            return;
+        }
+
+        activeFragment = home;
     }
 }
