@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,7 +18,7 @@ import com.example.ainotessummarizer.model.FlashcardModel;
 public class FlipCardFragment extends Fragment {
     private static final String ARG_FLASHCARD = "flashcard";
     private FlashcardModel flashcard;
-    private LinearLayout cardFront, cardBack;
+    private View cardFront, cardBack;
     private TextView textFront, textBack;
     private boolean isFrontVisible = true;
 
@@ -63,8 +62,8 @@ public class FlipCardFragment extends Fragment {
     }
 
     private void flipCard() {
-        AnimatorSet frontFlipOut = (AnimatorSet) AnimatorInflater.loadAnimator(getContext(), R.anim.card_flip_right_out);
-        AnimatorSet backFlipIn = (AnimatorSet) AnimatorInflater.loadAnimator(getContext(), R.anim.card_flip_right_in);
+        AnimatorSet frontFlipOut = (AnimatorSet) AnimatorInflater.loadAnimator(requireContext(), R.anim.card_flip_right_out);
+        AnimatorSet backFlipIn = (AnimatorSet) AnimatorInflater.loadAnimator(requireContext(), R.anim.card_flip_right_in);
 
         if (isFrontVisible) {
             frontFlipOut.setTarget(cardFront); backFlipIn.setTarget(cardBack);
